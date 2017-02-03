@@ -532,23 +532,50 @@ METRICS = {
     # SLA
     "sla_cluster_mtta_ms": Stat("gauge", "sla_cluster_mtta_ms"),
     "sla_cluster_mtta_nonprod_ms": Stat("gauge", "sla_cluster_mtta_nonprod_ms"),
+
     "sla_cluster_mttr_ms": Stat("gauge", "sla_cluster_mttr_ms"),
     "sla_cluster_mttr_nonprod_ms": Stat("gauge", "sla_cluster_mttr_nonprod_ms"),
+
+    "sla_cluster_mtts_ms": Stat("gauge", "sla_cluster_mtts_ms"),
+    "sla_cluster_mtts_nonprod_ms": Stat("gauge", "sla_cluster_mtts_nonprod_ms"),
+
+    "sla_cluster_mtts_ms": Stat("gauge", "sla_cluster_mtts_ms"),
+    "sla_cluster_mtts_nonprod_ms": Stat("gauge", "sla_cluster_mtts_nonprod_ms"),
+
     "sla_cluster_platform_uptime_percent": Stat("gauge", "sla_cluster_platform_uptime_percent"),
+
     "sla_cpu_small_mtta_ms": Stat("gauge", "sla_cpu_small_mtta_ms"),
     "sla_cpu_small_mtta_nonprod_ms": Stat("gauge", "sla_cpu_small_mtta_nonprod_ms"),
+
     "sla_cpu_small_mttr_ms": Stat("gauge", "sla_cpu_small_mttr_ms"),
     "sla_cpu_small_mttr_nonprod_ms": Stat("gauge", "sla_cpu_small_mttr_nonprod_ms"),
+
+    "sla_cpu_small_mtts_ms": Stat("gauge", "sla_cpu_small_mtts_ms"),
+    "sla_cpu_small_mtts_nonprod_ms": Stat("gauge", "sla_cpu_small_mtts_nonprod_ms"),
+
     "sla_disk_small_mtta_ms": Stat("gauge", "sla_disk_small_mtta_ms"),
     "sla_disk_small_mtta_nonprod_ms": Stat("gauge", "sla_disk_small_mtta_nonprod_ms"),
+
     "sla_disk_small_mttr_ms": Stat("gauge", "sla_disk_small_mttr_ms"),
     "sla_disk_small_mttr_nonprod_ms": Stat("gauge", "sla_disk_small_mttr_nonprod_ms"),
+
+    "sla_disk_small_mtts_ms": Stat("gauge", "sla_disk_small_mtts_ms"),
+    "sla_disk_small_mtts_nonprod_ms": Stat("gauge", "sla_disk_small_mtts_nonprod_ms"),
+
     "sla_ram_medium_mtta_nonprod_ms": Stat("gauge", "sla_ram_medium_mtta_nonprod_ms"),
     "sla_ram_medium_mttr_nonprod_ms": Stat("gauge", "sla_ram_medium_mttr_nonprod_ms"),
+    "sla_ram_medium_mtts_nonprod_ms": Stat("gauge", "sla_ram_medium_mtts_nonprod_ms"),
+
+
     "sla_ram_small_mtta_ms": Stat("gauge", "sla_ram_small_mtta_ms"),
     "sla_ram_small_mtta_nonprod_ms": Stat("gauge", "sla_ram_small_mtta_nonprod_ms"),
+
     "sla_ram_small_mttr_ms": Stat("gauge", "sla_ram_small_mttr_ms"),
     "sla_ram_small_mttr_nonprod_ms": Stat("gauge", "sla_ram_small_mttr_nonprod_ms"),
+
+    "sla_ram_small_mtts_ms": Stat("gauge", "sla_ram_small_mtts_ms"),
+    "sla_ram_small_mtts_nonprod_ms": Stat("gauge", "sla_ram_small_mtts_nonprod_ms"),
+
     "sla_stats_computation_events": Stat("counter", "sla_stats_computation_events"),
     "sla_stats_computation_events_per_sec": Stat("gauge", "sla_stats_computation_events_per_sec"),
     "sla_stats_computation_nanos_per_event": Stat("gauge", "sla_stats_computation_nanos_per_event"),
@@ -659,6 +686,8 @@ DYNAMIC_STAT_LIST = {
         "_mtta_nonprod_ms": Stat("gauge", "_mtta_nonprod_ms"),
         "_mttr_ms": Stat("gauge", "_mttr_ms"),
         "_mttr_nonprod_ms": Stat("gauge", "_mttr_nonprod_ms"),
+        "_mtts_ms": Stat("gauge", "_mtts_ms"),
+        "_mtts_nonprod_ms": Stat("gauge", "_mtts_nonprod_ms"),
         "_platform_uptime_percent": Stat("gauge", "_platform_uptime_percent")
     },
     "tasks_": {
@@ -723,12 +752,18 @@ def get_metric(t):
         # Following is a hack, I will think on this later for a more elegant solution
         # Todo revisit
         v = None
+        t1 = None
         if 'sla_' in t[0:4]:
+            v = Stat
             for k, v1 in DYNAMIC_STAT_LIST['sla_'].iteritems():
                 if k in t[4:]:
                     v = Stat(v1.type, t.replace(k, v1.name))
                     t1 = t.replace(k, v1.name)
-            type_instance = t1
+            if t1 is None:
+                print "Couldn't find associated metric with ", t
+                return None, None
+            else:
+                type_instance = t1
         elif 'tasks_FAILED_' in t:
             v = DYNAMIC_STAT_LIST['tasks_']['tasks_FAILED_']
             v = Stat(v.type, t)
